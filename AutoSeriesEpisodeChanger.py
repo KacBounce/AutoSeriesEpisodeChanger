@@ -9,17 +9,39 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import  NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import threading
+import keyboard
 
 
 class AutoSeriesEpisodeChanger():    
 
-    def __init__(self, start_url, episode_time):
+    def __init__(self, start_url, episode_time, key_to_exit):
         self.start_url = start_url
         self.episode_time = episode_time * 60
+        self.playing = True
+        self.key_to_exit = key_to_exit
+    
+    def start_closing_thread(self, driver):
+        # Create and start a thread
+        listener_thread = threading.Thread(target=self.stop_playing, args=(driver,))
+        listener_thread.daemon = True  # Daemonize thread
+        listener_thread.start()
+    
+    def stop_playing(self, driver):
+        while self.playing:
+            try:
+                event = keyboard.read_event()  # Blocks until an event occurs
+                if event.name == self.key_to_exit:  # Only handle key down events
+                    print(f"Key pressed: {event.name}")
+                    self.playing = False
+                    driver.close()
+            except Exception as e:
+                print(f"An error occurred: {e}")
+        
 
     def run(self):
         driver = uc.Chrome()
-
+        self.start_closing_thread(driver)
         driver.get(self.start_url)
         
         iframe = driver.find_element(By.XPATH, "//iframe[@id='cizgi-js-0']")
@@ -27,7 +49,7 @@ class AutoSeriesEpisodeChanger():
         driver.switch_to.frame(iframe)
 
         try:
-            while True:
+            while self.playing:
                 time.sleep(2)
                 start = driver.find_element(
                     By.XPATH, "/html/body/div[1]/div[2]")
@@ -65,7 +87,11 @@ class AutoSeriesEpisodeChanger():
                 
                 driver.switch_to.frame(iframe)
                 
-        except KeyboardInterrupt:
+        except Exception as e:
+            driver.close()
+            print("Driver closed")
+            
+        finally:
             driver.close()
             print("Driver closed")
             
