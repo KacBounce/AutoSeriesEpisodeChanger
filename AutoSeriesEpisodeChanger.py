@@ -40,9 +40,15 @@ class AutoSeriesEpisodeChanger():
                     By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/div[4]/button[6]")
                 
                 time.sleep(1)
+                
                 fullscreen.click()
                 
                 time.sleep(self.episode_time)
+                
+                video = driver.find_element(
+                    By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/video")                
+                video.send_keys(Keys.ESCAPE)
+                time.sleep(1)
                 fullscreen.click()
                 
                 driver.switch_to.default_content()
