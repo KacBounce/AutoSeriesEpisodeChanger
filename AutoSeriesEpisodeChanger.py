@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import threading
 import keyboard
+import math
 
 
 class AutoSeriesEpisodeChanger():    
@@ -29,19 +30,16 @@ class AutoSeriesEpisodeChanger():
     
     def stop_playing(self, driver):
         while self.playing:
-            try:
-                event = keyboard.read_event()  # Blocks until an event occurs
-                if event.name == self.key_to_exit:  # Only handle key down events
-                    print(f"Key pressed: {event.name}")
-                    self.playing = False
-                    driver.close()
-            except Exception as e:
-                print(f"An error occurred: {e}")
-        
+            event = keyboard.read_event()  # Blocks until an event occurs
+            if event.name == self.key_to_exit:  # Only handle key down events
+                print(f"Closing the driver")
+                self.playing = False
+                driver.close()
+                
 
     def run(self):
         driver = uc.Chrome()
-        self.start_closing_thread(driver)
+        
         driver.get(self.start_url)
         
         iframe = driver.find_element(By.XPATH, "//iframe[@id='cizgi-js-0']")
@@ -49,49 +47,90 @@ class AutoSeriesEpisodeChanger():
         driver.switch_to.frame(iframe)
 
         try:
+            first_run = True
+            self.start_closing_thread(driver)
             while self.playing:
-                time.sleep(2)
+                if (first_run):
+                    print("Starting bot, please wait until message to quit safely...")
+                else:
+                    print("Starting next episode, please wait for the message to quit safely...")
+                time.sleep(1)
+               
                 start = driver.find_element(
                     By.XPATH, "/html/body/div[1]/div[2]")
                 
-                time.sleep(2)
-                start.click()
-                
                 time.sleep(1)
+                start.click()
+                try:
+                    time.sleep(1)
+                    quality = driver.find_element(
+                        By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/div[4]/div[14]/button")
+                    if (quality.is_displayed()):
+                        quality.click()
+                        time.sleep(1)
+                        try:
+                            hd = driver.find_element(
+                            By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/div[4]/div[14]/div/ul/li[1]/a")
+                            hd.click()
+                            time.sleep(1)
+                            try:
+                                start.click()
+
+                            except:
+                                print("ERROR 1")
+                                continue
+                        except:
+                            print("ERROR 2")
+                            continue
+                except:
+                    print("ERROR 3")
+                    continue
+    
+                time.sleep(1)
+                video = driver.find_element(
+                    By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/video")
+                video.send_keys(Keys.ESCAPE)
+                
                 fullscreen = driver.find_element(
                     By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/div[4]/button[6]")
                 
                 time.sleep(1)
                 
                 fullscreen.click()
-                
-                time.sleep(self.episode_time)
-                
                 video = driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/video")                
+                    By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/div/video")
+                time.sleep(1)
+                print("You can quit now by pressing " + self.key_to_exit)
+                for i in range(math.ceil(int(self.episode_time))):
+                    if (self.playing):
+                        time.sleep(1)
+                    else:
+                        quit()                
+                
+                
                 video.send_keys(Keys.ESCAPE)
                 time.sleep(1)
                 fullscreen.click()
                 
                 driver.switch_to.default_content()
                 
-                time.sleep(5)
+                time.sleep(1)
                 next_ep = driver.find_element(
                     By.XPATH, "/html/body/div[3]/div/div/div[1]/div[2]/div[5]/span[2]")
                 
                 next_ep.click()
                 
-                time.sleep(10)
+                time.sleep(1)
                 iframe = driver.find_element(
                     By.XPATH, "//iframe[@id='cizgi-js-0']")
                 
                 driver.switch_to.frame(iframe)
                 
-        except Exception as e:
-            driver.close()
-            print("Driver closed")
-            
         finally:
-            driver.close()
-            print("Driver closed")
+            print("Thanks for using our app")
+            try:              
+                driver.close()
+                print("Driver closed")
+            except:
+                print()
             
