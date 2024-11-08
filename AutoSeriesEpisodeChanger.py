@@ -12,6 +12,7 @@ import time
 import threading
 import keyboard
 import math
+from Websites import Websites
 
 
 class AutoSeriesEpisodeChanger():    
@@ -21,6 +22,22 @@ class AutoSeriesEpisodeChanger():
         self.episode_time = episode_time * 60
         self.playing = True
         self.key_to_exit = key_to_exit
+        
+        self.website = None
+        for website in Websites:
+            if website.value in start_url:
+                print(f"Website found : {website.value}")
+                self.website = website
+                break
+            else:
+                print("Website not supported")
+        
+        if (self.website == None):
+            print("Website not found in the Websites enum")
+                
+        # if Websites.WCOFUN.value in start_url:
+        #     self.website = Websites.WCOFUN
+   
     
     def start_closing_thread(self, driver):
         # Create and start a thread
@@ -34,10 +51,14 @@ class AutoSeriesEpisodeChanger():
             if event.name == self.key_to_exit:  # Only handle key down events
                 print(f"Closing the driver")
                 self.playing = False
-                driver.close()
+                try:
+                    driver.close()
+                except:
+                    print("Driver already closed")
+                    continue
                 
 
-    def run(self):
+    def run_wcofun(self):
         driver = uc.Chrome()
         
         driver.get(self.start_url)
@@ -102,7 +123,7 @@ class AutoSeriesEpisodeChanger():
                     if (self.playing):
                         time.sleep(1)
                     else:
-                        quit()                
+                        quit(0)                
                 
                 
                 video.send_keys(Keys.ESCAPE)
@@ -124,10 +145,13 @@ class AutoSeriesEpisodeChanger():
                 driver.switch_to.frame(iframe)
                 
         finally:
-            print("Thanks for using our app")
+            print("Goodbye")
             try:              
                 driver.close()
                 print("Driver closed")
             except:
                 print()
-            
+
+    def run(self):
+        if (self.website == Websites.WCOFUN):
+            self.run_wcofun()
