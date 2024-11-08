@@ -77,14 +77,11 @@ class AutoSeriesEpisodeChanger():
                                 start.click()
 
                             except:
-                                print("ERROR 1")
-                                continue
+                                print("Start button not found")
                         except:
-                            print("ERROR 2")
-                            continue
+                            print("HD not found")
                 except:
-                    print("ERROR 3")
-                    continue
+                    print("Quality not found")
     
                 time.sleep(1)
                 video = driver.find_element(
