@@ -185,6 +185,7 @@ class AutoSeriesEpisodeChanger():
             closing_thread = self.start_closing_thread(driver)
             ending_thread = self.start_ending_thread()
             while self.playing:
+                time.sleep(1)
                 iframe = driver.find_element(
                     By.XPATH, "//iframe[@id='cizgi-js-0']")
 
